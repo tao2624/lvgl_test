@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "lv_port_linux Docs": {
+      "type": "sse",
+      "url": "https://gitmcp.io/lvgl/lv_port_linux/tree/100askTeam/master"
+    }
+  }
+}

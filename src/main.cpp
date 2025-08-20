@@ -3,13 +3,23 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
 
 #include "lvgl/lvgl.h"
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/src/core/lv_global.h"
+#include "testPage.hpp"
+#include "UI.hpp"
+
 
 #if LV_USE_WAYLAND
 #include "backends/interface.h"
+#endif
+
+#if LV_USE_SDL
+#include "lvgl/src/drivers/sdl/lv_sdl_window.h"
+#include "lvgl/src/drivers/sdl/lv_sdl_mouse.h"
+#include "lvgl/src/drivers/sdl/lv_sdl_keyboard.h"
 #endif
 
 uint16_t window_width;
@@ -25,35 +35,25 @@ static const char *getenv_default(const char *name, const char *dflt)
 }
 
 #if LV_USE_EVDEV
-static void indev_deleted_cb(lv_event_t * e)
+
+#if LV_USE_X11
+static void lv_linux_init_input_pointer(lv_display_t * disp)
 {
-    if(LV_GLOBAL_DEFAULT()->deinit_in_progress) return;
-    lv_obj_t * cursor_obj = lv_event_get_user_data(e);
-    lv_obj_delete(cursor_obj);
-}
-
-static void discovery_cb(lv_indev_t * indev, lv_evdev_type_t type, void * user_data)
-{
-    LV_LOG_USER("new '%s' device discovered", type == LV_EVDEV_TYPE_REL ? "REL" :
-                                              type == LV_EVDEV_TYPE_ABS ? "ABS" :
-                                              type == LV_EVDEV_TYPE_KEY ? "KEY" :
-                                              "unknown");
-
-    lv_display_t * disp = user_data;
-    lv_indev_set_display(indev, disp);
-
-    if(type == LV_EVDEV_TYPE_REL) {
-        /* Set the cursor icon */
-        LV_IMAGE_DECLARE(mouse_cursor_icon);
-        lv_obj_t * cursor_obj = lv_image_create(lv_display_get_screen_active(disp));
-        lv_image_set_src(cursor_obj, &mouse_cursor_icon);
-        lv_indev_set_cursor(indev, cursor_obj);
-
-        /* delete the mouse cursor icon if the device is removed */
-        lv_indev_add_event_cb(indev, indev_deleted_cb, LV_EVENT_DELETE, cursor_obj);
+    // X11后端通常自动处理鼠标输入，不需要手动指定设备文件
+    // 系统会自动检测鼠标设备
+    
+    // 如果需要自定义鼠标指针图标
+    LV_IMAGE_DECLARE(mouse_cursor_icon);
+    lv_obj_t * cursor_obj = lv_image_create(lv_display_get_screen_active(disp));
+    lv_image_set_src(cursor_obj, &mouse_cursor_icon);
+    
+    // 获取默认的输入设备（X11会自动创建）
+    lv_indev_t * mouse = lv_indev_get_next(NULL);
+    if(mouse && lv_indev_get_type(mouse) == LV_INDEV_TYPE_POINTER) {
+        lv_indev_set_cursor(mouse, cursor_obj);
     }
 }
-
+#else
 static void lv_linux_init_input_pointer(lv_display_t *disp)
 {
     /* Enables a pointer (touchscreen/mouse) input device
@@ -63,12 +63,11 @@ static void lv_linux_init_input_pointer(lv_display_t *disp)
      * If LV_LINUX_EVDEV_POINTER_DEVICE is not set, automatic evdev disovery will start
      */
     const char *input_device = getenv("LV_LINUX_EVDEV_POINTER_DEVICE");
-
-    if (input_device == NULL) {
-        LV_LOG_USER("the LV_LINUX_EVDEV_POINTER_DEVICE environment variable is not set. using evdev automatic discovery.");
-        lv_evdev_discovery_start(discovery_cb, disp);
-        return;
+    if(input_device == NULL) {
+        input_device = getenv_default("LV_LINUX_EVDEV_POINTER_DEVICE", "/dev/input/event6");
+        // input_device = "/dev/input/event8";
     }
+
 
     lv_indev_t *touch = lv_evdev_create(LV_INDEV_TYPE_POINTER, input_device);
     lv_indev_set_display(touch, disp);
@@ -79,6 +78,7 @@ static void lv_linux_init_input_pointer(lv_display_t *disp)
     lv_image_set_src(cursor_obj, &mouse_cursor_icon);
     lv_indev_set_cursor(touch, cursor_obj);
 }
+#endif
 #endif
 
 #if LV_USE_LINUX_FBDEV
@@ -108,12 +108,30 @@ static void lv_linux_disp_init(void)
 #elif LV_USE_SDL
 static void lv_linux_disp_init(void)
 {
+    lv_display_t * disp = lv_sdl_window_create(window_width, window_height);
+    
+    /* Create mouse input device for SDL2 */
+    lv_indev_t * mouse = lv_sdl_mouse_create();
+    lv_indev_set_display(mouse, disp);
+    
+    /* Create keyboard input device for SDL2 */
+    lv_indev_t * keyboard = lv_sdl_keyboard_create();
+    lv_indev_set_display(keyboard, disp);
+    lv_indev_set_group(keyboard, lv_group_get_default());
+}
+#elif LV_USE_X11
+static void lv_linux_disp_init(void)
+{
+    lv_display_t * disp = lv_x11_window_create("LVGL Simulator", window_width, window_height);
 
-    lv_sdl_window_create(window_width, window_height);
-
+#if LV_USE_EVDEV
+    lv_linux_init_input_pointer(disp);
+#endif
 }
 #elif LV_USE_WAYLAND
-    /* see backend/wayland.c */
+    // /* lv_linux_disp_init and lv_linux_run_loop are implemented in backends/wayland.c */
+    // extern void lv_linux_disp_init(void);
+    // extern void lv_linux_run_loop(void);
 #else
 #error Unsupported configuration
 #endif
@@ -125,11 +143,16 @@ void lv_linux_run_loop(void)
 
     /*Handle LVGL tasks*/
     while(1) {
-
         idle_time = lv_timer_handler(); /*Returns the time to the next timer execution*/
+        
+        /* For SDL2, we need to ensure the event processing timer runs properly */
+        if(idle_time > 5) idle_time = 5; /* SDL2 event handler runs every 5ms */
+        
         usleep(idle_time * 1000);
     }
 }
+#else
+    /* lv_linux_run_loop is implemented in backends/wayland.c when using Wayland */
 #endif
 
 /*
@@ -144,8 +167,8 @@ static void configure_simulator(int argc, char **argv)
 
     /* Default values */
     fullscreen = maximize = false;
-    window_width = atoi(getenv("LV_SIM_WINDOW_WIDTH") ? : "800");
-    window_height = atoi(getenv("LV_SIM_WINDOW_HEIGHT") ? : "480");
+    window_width = atoi(getenv("LV_SIM_WINDOW_WIDTH") ? : "1200");
+    window_height = atoi(getenv("LV_SIM_WINDOW_HEIGHT") ? : "800");
 
     /* Parse the command-line options. */
     while ((opt = getopt (argc, argv, "fmw:h:")) != -1) {
@@ -192,8 +215,16 @@ int main(int argc, char **argv)
     lv_linux_disp_init();
 
     /*Create a Demo*/
-    lv_demo_widgets();
-    lv_demo_widgets_start_slideshow();
+    // base_example_2();
+    // test_gui_create();
+    // lv_example_style_1();
+    // lv_demo_widgets();
+    // lv_demo_widgets_start_slideshow();
+
+    /* cpp try */
+    // 创建一个新屏幕
+    MainPage * main_screen = new MainPage();
+    main_screen->create();
 
     lv_linux_run_loop();
 

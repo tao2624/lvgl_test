@@ -1,0 +1,6 @@
+#!/bin/sh
+export DISPLAY=:1
+export XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+sudo DISPLAY=$DISPLAY XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR ./bin/lvglsim
+
+
