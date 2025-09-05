@@ -1,7 +1,8 @@
 #include "lvgl/lvgl.h"
 #include "testPage.hpp"
-#include "Lvgl.hpp"
-#include "UI.hpp"
+// #include "Lvgl.hpp"
+// #include "UI.hpp"
+#include <stdio.h>
 
 void test_gui_create(void){
     lv_obj_t * scr = lv_screen_active(); // 获取当前活动屏幕
@@ -61,6 +62,56 @@ void base_example_2()
     }
 }
 
+/* 尝试添加事件 */
+lv_obj_t * my_screen;
+lv_obj_t * second_show;
+static void event_btn(lv_event_t * e) {
+    printf("btn has been press\n");
+    const char* data = lv_obj_get_user_data(lv_event_get_target(e));
+    printf("userdata = %s\n", data);
+    lv_screen_load(second_show);
+}
+static void event_btn2(lv_event_t * e) {
+    printf("btn2 has been press\n");
+    lv_screen_load(my_screen);
+}
+void base_example_3(void)
+{
+    // 创建一个新屏幕
+    my_screen = lv_obj_create(NULL);
+    second_show = lv_obj_create(NULL);
+
+    // lv_obj_set_size(my_screen, 800, 480);
+    // lv_obj_set_size(second_show, 800, 480);
+
+    // 设置背景
+    lv_obj_set_style_bg_color(my_screen, lv_color_hex(0x349800), 0);
+    lv_obj_set_style_bg_color(second_show, lv_color_hex(0xe74c3c), 0);
+
+    // 在主屏上创建一个按钮
+    lv_obj_t * btn = lv_button_create(my_screen);
+    lv_obj_set_user_data(btn, "button1");
+    lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+    // 在副屏创建一个按钮
+    lv_obj_t * btn2 = lv_button_create(second_show);
+    lv_obj_align(btn2, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_size(btn2, 100, 100);
+
+    // add 事件回调
+    // lv_obj_add_event_cb(btn, event_btn, LV_EVENT_ALL, NULL); 使用这个ALL会导致事件被无限触发
+    lv_obj_add_event_cb(btn, event_btn, LV_EVENT_CLICKED, NULL); 
+    // 返回事件
+    lv_obj_add_event_cb(btn2,event_btn2, LV_EVENT_CLICKED, NULL);
+
+    // 创建一个标签
+    lv_obj_t * label = lv_label_create(btn);
+    lv_label_set_text(label, "Hello LVGL!!");
+    // lv_obj_center(label);
+
+    // 切换到新屏幕
+    lv_screen_load(my_screen);
+}
+
 void lv_example_style_1(void)
 {
      static lv_style_t style;
@@ -88,14 +139,16 @@ void lv_example_style_1(void)
      lv_screen_load(obj);
 }
 
+
+
 /* -------------------------------- cpp test --------------------------------------- */
 
-void basic_example_1(void)
-{
-    // 创建一个新屏幕
-    MainPage * main_screen = new MainPage();
-    main_screen->create();
-}
+// void basic_example_1(void)
+// {
+//     // 创建一个新屏幕
+//     MainPage * main_screen = new MainPage();
+//     main_screen->show();
+// }
 
 
 

@@ -2,6 +2,9 @@
 #include "Lvgl.hpp"
 #include "UI.hpp"
 // #include "lv_color.h"
+#include "PageManager.hpp"
+#include "my_config.hpp"
+
 
 extern "C"
 {
@@ -10,10 +13,11 @@ extern "C"
     LV_IMAGE_DECLARE(security_camera_icon);
 }
 
-MainPage::MainPage()
-    : LvObject(NULL) {
+// MainPage::MainPage() : LvObject(NULL) , main_screen(this) {
+MainPage::MainPage() : BasePage() , main_screen(new LvObject(NULL)) {
+// MainPage::MainPage(FaceDetectPage * faceDetect) : BasePage() , main_screen(new LvObject(NULL)), faceDetectPage(faceDetect) {
     // Constructor code
-    main_screen = new LvObject(NULL);
+    // main_screen = new LvObject(NULL);
     // Create the main page UI
     main_screen->set_style_bg_image_src(&bg, 0)
         // .set_style_text_font(Font24::get_font(), 0)
@@ -43,6 +47,11 @@ MainPage::MainPage()
         .add_event_cb(
             [&](lv_event_t * e, void * obj) {
                 LV_LOG_USER("Face container clicked!\t");
+                // if (faceDetectPage) {
+                //     faceDetectPage->show();
+                // }
+                PageManager::getInstance().switchToPage(PageManager::PageType::FACEPAGE);
+                
             },
             LV_EVENT_CLICKED,
             nullptr
@@ -52,6 +61,11 @@ MainPage::MainPage()
     face_container_image.set_src(&face_icon);
 }
 
-void MainPage::create() {
+void MainPage::show() {
     lv_screen_load(main_screen->raw());
 }
+
+void MainPage::hide() {
+    // lv_obj_add_flag(main_screen->raw(), LV_OBJ_FLAG_HIDDEN);
+}
+

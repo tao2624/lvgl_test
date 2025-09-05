@@ -63,6 +63,23 @@
         "thread": "cpp",
         "cfenv": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
-    }
+        "typeinfo": "cpp",
+        "ui.hpp": "c",
+        "lvgl.hpp": "c",
+        "iostream": "cpp"
+    },
+
+    "editor.inlineSuggest.enabled": false,
+    "editor.parameterHints.enabled": false,
+    "[<language>]": {
+    "editor.quickSuggestions": {
+        "comments": "off",
+        "strings": "off",
+        "other": "off"
+    },
+    "editor.suggest.showWords": false,
+    "editor.suggest.showSnippets": false
+    },
+    "typescript.suggest.enabled": false,
+    "javascript.suggest.enabled": false
 }

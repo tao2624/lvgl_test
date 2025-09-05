@@ -9,7 +9,9 @@
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/src/core/lv_global.h"
 #include "testPage.hpp"
+// 用C可能需要注释下面
 #include "UI.hpp"
+#include "my_config.hpp"
 
 
 #if LV_USE_WAYLAND
@@ -216,15 +218,16 @@ int main(int argc, char **argv)
 
     /*Create a Demo*/
     // base_example_2();
+    // base_example_3();
     // test_gui_create();
     // lv_example_style_1();
     // lv_demo_widgets();
     // lv_demo_widgets_start_slideshow();
 
     /* cpp try */
-    // 创建一个新屏幕
-    MainPage * main_screen = new MainPage();
-    main_screen->create();
+    auto & page_manager = PageManager::getInstance();
+    page_manager.init();
+    page_manager.switchToPage(PageManager::PageType::MAINPAGE);
 
     lv_linux_run_loop();
 
