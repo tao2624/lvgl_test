@@ -3,13 +3,17 @@
 #include <iostream>
 #include <unordered_map>
 #include <memory>
+#include <my_config.hpp>
 
 using namespace std;
 
-void PageManager::init() {
+LvImage * image_;
+LvImageDsc * image_dsc_;
+
+void PageManager::init(Camera & camera) {
     // 使用 make_unique 创建智能指针，更安全
     pages_map[PageType::MAINPAGE] = std::make_unique<MainPage>();
-    pages_map[PageType::FACEPAGE] = std::make_unique<FaceDetectPage>();
+    pages_map[PageType::FACEPAGE] = std::make_unique<FaceDetectPage>(camera);
 }
 
 void PageManager::switchToPage(PageType pagetype) {

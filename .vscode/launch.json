@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/taos/Desktop/github_prj/lv_port_linux/bin/lvglsim",
+            "program": "/home/taos/Desktop/github_prj/C_lv_port_linux/bin/lvglsim",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

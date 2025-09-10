@@ -36,9 +36,10 @@ public:
 class FaceDetectPage : public BasePage {
 private:
     LvObject * main_screen;
+    Camera& camera_;
 
 public:
-    FaceDetectPage();
+    FaceDetectPage(Camera& camera_);
 
     void show() override;
     void hide() override;

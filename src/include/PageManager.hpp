@@ -3,6 +3,7 @@
 #include "Lvgl.hpp"
 #include <unordered_map>
 #include <memory>
+#include <my_config.hpp>
 
 
 class BasePage {
@@ -34,7 +35,7 @@ public:
         return instance;
     }
 
-    void init();
+    void init(Camera & camera);
 
     void switchToPage(PageType pagetype);
     

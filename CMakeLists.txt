@@ -38,6 +38,14 @@ pkg_check_modules(LIBAVFORMAT libavformat)
 pkg_check_modules(LIBAVUTIL libavutil)
 pkg_check_modules(LIBSWSCALE libswscale)
 pkg_check_modules(LIBAVFILTER libavfilter)
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+if(OpenCV_FOUND)
+    message(STATUS "OpenCV found: ${OpenCV_VERSION}")
+    target_include_directories(lvgl PUBLIC ${OpenCV_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "OpenCV not found")
+endif()
 
 if(LIBAVCODEC_FOUND AND LIBAVFORMAT_FOUND AND LIBAVUTIL_FOUND AND LIBSWSCALE_FOUND)
     message(STATUS "FFmpeg found")
@@ -60,7 +68,8 @@ if (LV_USE_LINUX_DRM)
 
     target_include_directories(lvgl PUBLIC ${LIBDRM_INCLUDE_DIRS})
     add_executable(lvglsim ${SOURCE_FILES} mouse_cursor_icon.c)
-    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${LIBDRM_LIBRARIES} ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} m pthread)
+    target_include_directories(lvglsim PRIVATE ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
+    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${LIBDRM_LIBRARIES} ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} ${OpenCV_LIBS} m pthread)
 
 elseif (LV_USE_SDL)
 
@@ -72,7 +81,8 @@ elseif (LV_USE_SDL)
     target_include_directories(lvgl PRIVATE ${SDL2_IMAGE_INCLUDE_DIRS})
     target_include_directories(lvgl PUBLIC ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
     add_executable(lvglsim ${SOURCE_FILES} mouse_cursor_icon.c ${IMAGE_FILES})
-    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} m pthread)
+    target_include_directories(lvglsim PRIVATE ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
+    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${FREETYPE_LIBRARIES} ${OpenCV_LIBS} ${FFMPEG_LIBRARIES} m pthread)
 
 elseif (LV_USE_X11)
 
@@ -81,7 +91,8 @@ elseif (LV_USE_X11)
 
     target_include_directories(lvgl PRIVATE ${X11_INCLUDE_DIRS})
     add_executable(lvglsim ${SOURCE_FILES} mouse_cursor_icon.c)
-    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${X11_LIBRARIES} ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} m pthread)
+    target_include_directories(lvglsim PRIVATE ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
+    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${X11_LIBRARIES} ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} ${OpenCV_LIBS} m pthread)
 
 elseif (LV_USE_WAYLAND)
 
@@ -100,15 +111,17 @@ elseif (LV_USE_WAYLAND)
                                             "${PROJECT_SOURCE_DIR}/wl_protocols")
     add_executable(lvglsim ${SOURCE_FILES} ${WAYLAND_PROTOCOLS_SRC} 
         mouse_cursor_icon.c backends/wayland.c)
+    target_include_directories(lvglsim PRIVATE ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
     target_compile_definitions(lvglsim PRIVATE LV_CONF_INCLUDE_SIMPLE)
     target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg m
-        wayland-client wayland-cursor xkbcommon ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES})
+        wayland-client wayland-cursor xkbcommon ${FREETYPE_LIBRARIES} ${FFMPEG_LIBRARIES} ${OpenCV_LIBS})
 
 else()
 
     # No specific build steps required for FBDEV
     add_executable(lvglsim ${SOURCE_FILES} mouse_cursor_icon.c)
-    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${FREETYPE_LIBRARIES} m pthread)
+    target_include_directories(lvglsim PRIVATE ${SOURCE_DIR}/include ${SOURCE_DIR}/library)
+    target_link_libraries(lvglsim lvgl lvgl::examples lvgl::demos lvgl::thorvg ${FREETYPE_LIBRARIES} ${OpenCV_LIBS} m pthread)
 endif()
 
 add_custom_target (run COMMAND ${EXECUTABLE_OUTPUT_PATH}/lvglsim DEPENDS lvglsim)

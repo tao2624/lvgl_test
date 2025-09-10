@@ -225,8 +225,9 @@ int main(int argc, char **argv)
     // lv_demo_widgets_start_slideshow();
 
     /* cpp try */
+    Camera camera("/dev/video1"); 
     auto & page_manager = PageManager::getInstance();
-    page_manager.init();
+    page_manager.init(camera);
     page_manager.switchToPage(PageManager::PageType::MAINPAGE);
 
     lv_linux_run_loop();

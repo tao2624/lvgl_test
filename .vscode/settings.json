@@ -66,7 +66,15 @@
         "typeinfo": "cpp",
         "ui.hpp": "c",
         "lvgl.hpp": "c",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp",
+        "set": "cpp",
+        "format": "cpp",
+        "iomanip": "cpp",
+        "span": "cpp",
+        "variant": "cpp"
     },
 
     "editor.inlineSuggest.enabled": false,
