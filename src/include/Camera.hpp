@@ -7,6 +7,7 @@
 #include <mutex>
 #include <queue>
 #include <memory>
+#include <condition_variable>
 
 
 #define CAMERA_WIDTH    1280
@@ -19,7 +20,7 @@ public:
     void start();
     void captureLoop();
     void stop();
-    cv::Mat getFrame();
+    std::shared_ptr<cv::Mat> getFrame();
 
 
 
@@ -30,7 +31,11 @@ private:
     std::thread capture_thread_;
     std::atomic<bool> is_capturing_;
     std::queue<std::shared_ptr<cv::Mat>> frame_queue_;
-
+    std::condition_variable condition_;
 
 };
+
+
+
+
 

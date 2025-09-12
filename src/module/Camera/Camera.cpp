@@ -21,13 +21,22 @@ void Camera::start() {
     return;
 }
 
+/* 生产者 */
 void Camera::captureLoop() {
     while(is_capturing_) {
-        cv::Mat temp_frame;
-        if(capture_.read(temp_frame) && !temp_frame.empty()) {
-            std::lock_guard<std::mutex> lock(frame_mutex);
-            frame = temp_frame.clone();
-        }
+        // cv::Mat temp_frame;
+        // if(capture_.read(temp_frame) && !temp_frame.empty()) {
+            std::unique_lock<std::mutex> lock(frame_mutex);
+            /* 入队前等待空 */
+            condition_.wait(lock,[this](){ return frame_queue_.empty(); });
+            // frame = temp_frame.clone();
+            std::shared_ptr<cv::Mat> frame_ptr = std::make_shared<cv::Mat>();
+            capture_.read(*frame_ptr);   
+            frame_queue_.push(frame_ptr);   /* 入队 */
+            /* 入队后通知非空 */
+            condition_.notify_one();
+
+        // }
         std::this_thread::sleep_for(std::chrono::milliseconds(33)); // ~30fps
     }
 }
@@ -40,8 +49,14 @@ void Camera::stop() {
 }
 
 
-cv::Mat Camera::getFrame() {
-    std::lock_guard<std::mutex> lock(frame_mutex);
-    return frame.clone();
+std::shared_ptr<cv::Mat> Camera::getFrame() {
+    std::unique_lock<std::mutex> lock(frame_mutex);
+    /* 出队前等待非空 */
+    condition_.wait(lock, [this](){ return !frame_queue_.empty(); });
+    std::shared_ptr<cv::Mat> frame = frame_queue_.front();
+    frame_queue_.pop();
+    /* 出队后通知 */
+    condition_.notify_one();
+    return frame;   // move()好一点
 }
 

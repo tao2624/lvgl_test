@@ -42,9 +42,9 @@ FaceDetectPage::FaceDetectPage(Camera& camera_param) : BasePage(), camera_(camer
         // 构造函数中 更新界面
         timer_ = new LvTimer([&](lv_timer_t * , void *){
             // 从Camera部分获取frame;
-            cv::Mat mat_frame = camera_.getFrame();
+            std::shared_ptr<cv::Mat> mat_frame = camera_.getFrame();
             // 检查frame是否有效
-            if(mat_frame.empty()) {
+            if(mat_frame->empty()) {
                 LV_LOG_WARN("Frame is empty");
                 return;
             }
@@ -54,10 +54,10 @@ FaceDetectPage::FaceDetectPage(Camera& camera_param) : BasePage(), camera_(camer
 
             // cv::resize(mat_frame, mat_frame, cv::Size(800, 450));  // 使用resize调整大小
             image_dsc_->raw()->header.cf = LV_COLOR_FORMAT_RGB888;
-            image_dsc_->raw()->header.w = mat_frame.cols;   // cols rows 不要搞反
-            image_dsc_->raw()->header.h = mat_frame.rows;   // 不然会乱码
-            image_dsc_->raw()->data = mat_frame.data;
-            image_dsc_->raw()->data_size = mat_frame.rows * mat_frame.cols * 3;
+            image_dsc_->raw()->header.w = mat_frame->cols;   // cols rows 不要搞反
+            image_dsc_->raw()->header.h = mat_frame->rows;   // 不然会乱码
+            image_dsc_->raw()->data = mat_frame->data;
+            image_dsc_->raw()->data_size = mat_frame->rows * mat_frame->cols * 3;
             image_->set_src(image_dsc_);            
         },
         33,
