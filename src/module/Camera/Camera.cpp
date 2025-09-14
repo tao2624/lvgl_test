@@ -37,7 +37,7 @@ void Camera::captureLoop() {
             condition_.notify_one();
 
         // }
-        std::this_thread::sleep_for(std::chrono::milliseconds(33)); // ~30fps
+        // std::this_thread::sleep_for(std::chrono::milliseconds(33)); // ~30fps
     }
 }
 

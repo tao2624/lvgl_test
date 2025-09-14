@@ -12,7 +12,8 @@ class FaceDetectPage;
 class MainPage : public BasePage {
 private:
     LvObject * main_screen;
-    FaceDetectPage * faceDetectPage;
+    // FaceDetectPage * faceDetectPage;
+    // SecurityPage * securityPage;
 
 public:
     // MainPage(FaceDetectPage * faceDetect = nullptr);
@@ -43,6 +44,20 @@ public:
 
     void show() override;
     void hide() override;
+};
+
+
+class SecurityPage : public BasePage {
+public:
+    SecurityPage(Camera& camera);
+
+    void show() override;
+    void hide() override;
+
+private:
+    LvObject* main_screen;
+    Camera& camera_;
+
 };
 
 

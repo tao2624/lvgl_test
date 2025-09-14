@@ -37,7 +37,7 @@ FaceDetectPage::FaceDetectPage(Camera& camera_param) : BasePage(), camera_(camer
 
         image_ = new LvImage(main_screen->raw()); 
         image_->align(LV_ALIGN_CENTER, 0, -50);
-        image_->set_width(800).set_height(450);
+        // image_->set_width(800).set_height(450);
 
         // 构造函数中 更新界面
         timer_ = new LvTimer([&](lv_timer_t * , void *){
@@ -48,6 +48,12 @@ FaceDetectPage::FaceDetectPage(Camera& camera_param) : BasePage(), camera_(camer
                 LV_LOG_WARN("Frame is empty");
                 return;
             }
+            cv::resize(*mat_frame, *mat_frame, cv::Size(800, 450));
+            time_t now = time(nullptr);
+            char time_str_s[20];
+            strftime(time_str_s, sizeof(time_str_s), "%Y-%m-%d %H:%M:%S", localtime(&now));
+            cv::putText(*mat_frame, time_str_s, cv::Point(mat_frame->cols - 800, mat_frame->rows-50),
+                        cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 5, cv::LINE_8);
             // 转换为RGB格式（OpenCV默认是BGR）
             // cv::Mat rgb_frame;
             // cv::cvtColor(mat_frame, rgb_frame, cv::COLOR_BGR2RGB);            
@@ -74,6 +80,9 @@ void FaceDetectPage::show() {
     camera_.start();  // 启动摄像头
     lv_screen_load(main_screen->raw());
     timer_->resume();
+
+    /* 推理线程 */
+    
     
 }
 

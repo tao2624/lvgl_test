@@ -10,13 +10,17 @@
 #include <condition_variable>
 
 
-#define CAMERA_WIDTH    1280
-#define CAMERA_HEIGHT   720
+// #define CAMERA_WIDTH    1280
+// #define CAMERA_HEIGHT   720
+#define CAMERA_WIDTH 1920
+#define CAMERA_HEIGHT 1080
 
 class Camera {
 public:
-    Camera(const std::string& device="/dev/video1");
-    ~Camera() = default;
+    static Camera & getInstance(std::string device) {
+        static Camera instance(device);
+        return instance;
+    }
     void start();
     void captureLoop();
     void stop();
@@ -25,6 +29,8 @@ public:
 
 
 private:
+    Camera(const std::string& device);
+    ~Camera() = default;
     cv::VideoCapture capture_;
     cv::Mat frame;
     std::mutex frame_mutex;
@@ -32,6 +38,11 @@ private:
     std::atomic<bool> is_capturing_;
     std::queue<std::shared_ptr<cv::Mat>> frame_queue_;
     std::condition_variable condition_;
+    // 禁用拷贝、移动构造 和 赋值重载
+    Camera(const Camera &) = delete;
+    Camera(Camera&&) = delete;
+    Camera& operator=(const Camera&) = delete;
+
 
 };
 

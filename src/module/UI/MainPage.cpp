@@ -59,6 +59,27 @@ MainPage::MainPage() : BasePage() , main_screen(new LvObject(NULL)) {
 
     LvImage face_container_image{face_container.raw()};
     face_container_image.set_src(&face_icon);
+
+    LvObject security_container(main_screen->raw());
+    security_container.set_size(LV_SIZE_CONTENT, LV_SIZE_CONTENT)
+        .set_flex_flow(LV_FLEX_FLOW_COLUMN)
+        .set_flex_align(LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
+        .set_align(LV_ALIGN_CENTER)
+        .add_event_cb(
+            [&](lv_event_t * e, void * obj) {
+                LV_LOG_USER("Face container clicked!\t");
+                // if (faceDetectPage) {
+                //     faceDetectPage->show();
+                // }
+                PageManager::getInstance().switchToPage(PageManager::PageType::FACEPAGE);
+                
+            },
+            LV_EVENT_CLICKED,
+            nullptr
+            );
+
+    LvImage security_container_image{security_container.raw()};
+    security_container_image.set_src(&security_camera_icon);
 }
 
 void MainPage::show() {
